@@ -1,4 +1,4 @@
-package a;
+package reto5a;
 
 public class Config {
 	public static final int nFilosofos=2;

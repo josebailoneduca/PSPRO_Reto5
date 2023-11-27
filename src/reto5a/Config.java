@@ -1,12 +1,27 @@
 package reto5a;
 
+/**
+ * Configuracion de los parametros del programa
+ */
 public class Config {
-	public static final int nFilosofos=2;
-	public static final int minPensar=0;
-	public static final int maxPensar=1000;
-	public static final int minComer=1000;
-	public static final int maxComer=5000;
+	//numero de filosofos
+	public static final int nFilosofos=5;
 	
-	public static Filosofo[] filosofos;
-	public static Tenedor[] tenedores;
+	//minimo tiempo pensando en ms
+	public static final int minPensar=0;
+	
+	//maximo tiempo pensando en ms
+	public static final int maxPensar=2000;
+	
+	//minimo tiempo comiendo en ms
+	public static final int minComer=100;
+	
+	//maximo tiempo comiendo en ms
+	public static final int maxComer=1000;
+	
+	//minima espera a que el segundo tenedor quede libre en ms
+	public static final int minEspera=100;
+	
+	//maximo espera a que el segundo tenedor quede libre en ms
+	public static final int maxEspera=500;
 }

@@ -26,8 +26,8 @@ public class MainReto5B {
 		mostrarMatriz(resultadoHebras);
 		}else {
 			System.out.println("RESULTADO SECUENCIAL: "+ms.getTiempo()+" ms");
-			System.out.println("RESULTADO HEBRAS: "+(mh.getTiempo())+" s");
-			System.out.println("RESULTADO THREADPOOL: "+(mtp.getTiempo())+" ms");
+			System.out.println("RESULTADO HEBRAS: "+mh.getTiempo()+" ms");
+			System.out.println("RESULTADO THREADPOOL: "+mtp.getTiempo()+" ms");
 		}
 
 	}

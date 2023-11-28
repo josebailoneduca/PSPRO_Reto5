@@ -2,6 +2,9 @@ package reto5b;
 
 import java.util.Random;
 
+/**
+ * 
+ */
 public class Generador {
 
 	

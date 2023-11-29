@@ -8,34 +8,47 @@ import java.util.Iterator;
  */
 public class Estadistica {
 	
-	//array de veces que se ha estado habriento
+	/**
+	 * array de veces que se ha estado habriento
+	 */
 	private static int[] vecesHambriento;
 	
-	//array del total de tiempo que se ha estado hambriento
+	/**
+	 * array del total de tiempo que se ha estado hambriento
+	 */
 	private static long[] totalHambriento;
 	
-	//array del total de veces que se ha comido
+	/**
+	 * array del total de veces que se ha comido
+	 */
 	private static int[] vecesComido;
 	
-	//array que registra que filosofo es dueño de cada tenedor
+	/**
+	 * array que registra que filosofo es dueño de cada tenedor
+	 */
 	private static int[] duenoTenedor;
 	
-	//estado actual de los filosofos
+	/**
+	 * estado actual de los filosofos
+	 */
 	private static int[] estadoFilosofo;//0 pensando, 1 habmriento, 2 comiendo
 	
-	//etiquetas de los estados
+	/**
+	 * etiquetas de los estados
+	 */
 	private static final String[] etiquetas= {"pensando","hambriento","comiendo"};
+	
 	
 	/**
 	 * Crear los arrays segun el numero de filosofos
 	 */
 	public static void configurar() {
-		vecesHambriento=new int[Config.nFilosofos];
-		totalHambriento=new long[Config.nFilosofos];
-		vecesComido=new int[Config.nFilosofos];
-		duenoTenedor=new int[Config.nFilosofos];
-		duenoTenedor=new int[Config.nFilosofos];
-		estadoFilosofo=new int[Config.nFilosofos];
+		vecesHambriento=new int[Config.N_FILOSOFOS];
+		totalHambriento=new long[Config.N_FILOSOFOS];
+		vecesComido=new int[Config.N_FILOSOFOS];
+		duenoTenedor=new int[Config.N_FILOSOFOS];
+		duenoTenedor=new int[Config.N_FILOSOFOS];
+		estadoFilosofo=new int[Config.N_FILOSOFOS];
 	}
 
 

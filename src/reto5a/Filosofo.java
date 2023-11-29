@@ -9,17 +9,25 @@ import java.util.Random;
  */
 public class Filosofo extends Thread{
 	
-	//Objto para hacer random
+	/**
+	 * Objeto para hacer random
+	 */
 	private Random r;
 	
-	//id del filosofo
+	/**
+	 * id del filosofo
+	 */
 	private int id;
 	
-	//referencia al tenedor derecho
+	/**
+	 * referencia al tenedor derecho
+	 */
 	private Tenedor tenedorDerecho = Mesa.tenedores[id];
 	
-	//referencia al tenedor izquierdo
-	private Tenedor tenedorIzquierdo=Mesa.tenedores[(id+1)%Config.nFilosofos];
+	/**
+	 * referencia al tenedor izquierdo
+	 */
+	private Tenedor tenedorIzquierdo=Mesa.tenedores[(id+1)%Config.N_FILOSOFOS];
 
 	
 	/**
@@ -55,7 +63,7 @@ public class Filosofo extends Thread{
 			tenedorIzquierdo.dejar();
 			//aviso a estadistica de que suelta ambos tenedores
 			Estadistica.soltarTenedor(id);
-			Estadistica.soltarTenedor((id+1)%Config.nFilosofos);
+			Estadistica.soltarTenedor((id+1)%Config.N_FILOSOFOS);
 	}
 
 	/**
@@ -81,14 +89,14 @@ public class Filosofo extends Thread{
 			if (!segundoTenedorCogido) {
 				tenedorDerecho.dejar();
 				try {
-					Thread.sleep(r.nextLong(Config.minEspera,Config.maxEspera));
+					Thread.sleep(r.nextLong(Config.MIN_ESPERA,Config.MAX_ESPERA));
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}
 		//Avisa a estadistica  que ha cogido el tenedor izquierdo
-		Estadistica.cogerTenedor(id, (id+1)%Config.nFilosofos);
+		Estadistica.cogerTenedor(id, (id+1)%Config.N_FILOSOFOS);
 		//estadisitica aviso de tiempo hambriento
 		Estadistica.tiempoHambriento(id, System.currentTimeMillis()- ini);
 	}
@@ -101,7 +109,7 @@ public class Filosofo extends Thread{
 		//avisa a estadistica que esta comiendo
 		Estadistica.comiendo(this.id);
 		try {
-			sleep(r.nextInt(Config.minComer, Config.maxComer));
+			sleep(r.nextInt(Config.MIN_COMER, Config.MAX_COMER));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -116,7 +124,7 @@ public class Filosofo extends Thread{
 		try {
 			//avisa a estadistica que esta pensando
 			Estadistica.pensando(this.id);
-			sleep(r.nextInt(Config.minPensar, Config.maxPensar));
+			sleep(r.nextInt(Config.MIN_PENSAR, Config.MAX_PENSAR));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

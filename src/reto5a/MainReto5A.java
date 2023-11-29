@@ -10,20 +10,20 @@ public class MainReto5A {
 
 
 public static void main(String[] args) {
-	Mesa.tenedores=new Tenedor[Config.nFilosofos];
-	Mesa.filosofos=new Filosofo[Config.nFilosofos];
+	Mesa.tenedores=new Tenedor[Config.N_FILOSOFOS];
+	Mesa.filosofos=new Filosofo[Config.N_FILOSOFOS];
 	Estadistica.configurar();
 
 	//crear filosofos y tenedores
-	for (int i=0;i<Config.nFilosofos;i++) {
+	for (int i=0;i<Config.N_FILOSOFOS;i++) {
 		Mesa.tenedores[i]=new Tenedor();		
 	}
-	for (int i=0;i<Config.nFilosofos;i++) {
+	for (int i=0;i<Config.N_FILOSOFOS;i++) {
 		Mesa.filosofos[i]=new Filosofo(i);
 	}
 	
 	//iniciar actividad de los filosofos
-	for (int i=0;i<Config.nFilosofos;i++) {		
+	for (int i=0;i<Config.N_FILOSOFOS;i++) {		
 		Mesa.filosofos[i].start();
 	}
 }

@@ -9,6 +9,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class Tenedor {
 
+	/**
+	 * Semaforo binario de acceso al tenedor
+	 */
 	private Semaphore libre=new Semaphore(1);
 
 	/**

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,12 +29,17 @@ public class BaseDatos {
 	/**
 	 * Lectores activos
 	 */
-	private AtomicInteger numeroLectores = new AtomicInteger();
+	private int numeroLectores = 0;
 
+	
 	/**
 	 * Semaforo escritores
 	 */
 	private Semaforo escritores;
+	/**
+	 * Semaforo lectores
+	 */
+	private Semaforo lectores;
 
 	/**
 	 * Semaforo que permite eliminar la prioridad de lectura/escritura
@@ -62,6 +68,7 @@ public class BaseDatos {
 		
 		//inicializar valores
 		this.escritores = new Semaforo(1);
+		this.lectores = new Semaforo(1);
 		this.cola = new Semaforo(1);
 		this.f = new File(ruta);
 		this.numeroTuplas = numeroTuplas;
@@ -109,12 +116,15 @@ public class BaseDatos {
 	 
 		//semaforo de anulacion de prioridades
  		cola.esperar();
+ 		//semaforo de lectores
+ 		lectores.esperar();
  		//registrar lector activo y bloquear escritores si se es el primer lector
-		if(numeroLectores.incrementAndGet()==1)
+ 		numeroLectores++;
+		if(numeroLectores==1)
 			escritores.esperar();
 		//fin de semaforo de anulacion de prioridades
  		cola.senalar();
-
+ 		lectores.senalar();
 
 		//lectura de la base de datos
 		//>>seccion critica
@@ -122,10 +132,13 @@ public class BaseDatos {
 		//<<fin seccion critica
 
  
+		//semaforo de lectores
+		lectores.esperar();
 		//decrementar el nuemro de lectores activos y si no quedan lectores se da paso a los escritores
-		if (numeroLectores.decrementAndGet() == 0)
+		numeroLectores--;
+		if (numeroLectores == 0)
 			escritores.senalar();
- 		
+ 		lectores.senalar();
 		//devolver valor leido
 		return leido;
 	}

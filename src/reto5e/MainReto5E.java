@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainReto5E {
-	public static final int LIMITE_INSERCIONES = 100000;
+	public static final int LIMITE_INSERCIONES = 1000000;
 	public static final int N_HILOS = 100;
 	public static final int LIMITE_LONGITUD_DEQUE= 5;
 

@@ -2,23 +2,19 @@ package reto5e;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class DequeConcurrenteTest {
 
-	@BeforeAll
-	static void setUpBeforeClass() throws Exception {
-	}
+ 
 
 	// ********************************************************************************************************
-		// METODOS PRINCIPALES DE LA INTERFAZ DEQUE
-		// ********************************************************************************************************
+	// METODOS PRINCIPALES DE LA INTERFAZ DEQUE
+	// ********************************************************************************************************
 
 	/**
 	 * Test del constructor con limite

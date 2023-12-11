@@ -5,32 +5,51 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import reto5a.Estadistica;
-
 /**
- * Implementacion de la interfaz Deque con soporte para concurrencia y limite
- * máximo del tamaño de la colección.
+ * Implementacion de la interfaz Deque con soporte para concurrencia y limite 
+ * máximo del tamaño de la colección. La limitación de tamaño es opcional. 
+ * La implementación consiste en una colección creada con nodos doblemente enlazados con 
+ * dos referencias a nivel de clase hacia HEAD y TAIL de tipo AtomicReference. 
+ * Se lleva un registro del  tamaño en un atributo AtomicInteger. 
+ * Contiene los métodos de la interfaz  Deque y Collection.
+ * Los métodos que suponen algún cambio en la  colección(inserción y borrado) 
+ * están creados usando un semáforo binario para  exclusión mutua. 
+ * Los métodos de solo lectura acceden sin restricciones más 
+ * que las que AtomicReference proporciona para la atomicidad de acceso a head y 
+ * tail. Algunos de los métodos contienen comprobaciones sobre si la lista está 
+ * vacía o se superaría el límite máximo de la colección en caso de producirse 
+ * la inserción y hacen esa comprobación tras adquirir el bloqueo del semáforo y 
+ * antes de liberarlo. Esas comprobaciones pueden generar la excepción 
+ * IllegalStateException o NoSuchElementException y para evitar un cierre 
+ * indefinido del semáforo se captura la excepción, se libera el semáforo y se 
+ * vuelve a lanzar la excepción. Los métodos que usan lo descrito son: addFirst, 
+ * removeFirst, addLast, removeLast, add, remove, push u pop. Los métodos 
+ * heredados de la interfaz Queue están implementados según la equivalencia de 
+ * la documentación de Oracle. Los métodos add, offer, remove, poll, element 
+ * están implementados para funcionar como cola(FIFO) y los métodos push y pop 
+ * como pila(LIFO). El método peek esta implementado para ambos(funciona igual). 
+ * Los métodos que recorren la colección con el objetivo de obtener información 
+ * sin modificarla es posible que ofrezcan un resultado inconsistente si la 
+ * colección sufre cambios desde otra hebra desde el momento en que se inicia el 
+ * recorrido hasta que se termina. He decidido no bloquear el acceso a otros 
+ * métodos durante la ejecución de estas acciones para priorizar ante todo la 
+ * modificación y dejar las consulta de este tipo como aproximaciones. Están 
+ * programadas para seguir su recorrido de nodos enlazados hasta que no haya 
+ * nuevo enlace. Es el caso de los métodos: contains, iterator, 
+ * descendingIterator, containsAll o toArray. Los métos removeAll y retainAll 
+ * hacen exclusión mútua durante los borrados puntuales pero no durante el 
+ * recorrido de la colección que se pasa como parámetro a esos métodos. 
  * 
  * @param <E> Tipo de dato almacenado en la coleccion
  */
 public class DequeConcurrente<E> implements Deque<E> {
 
-	private class Nodo<E> {
-		Nodo<E> anterior;
-		Nodo<E> siguiente;
-		E valor;
 
-		public Nodo(E valor) {
-			this.valor = valor;
-		}
-
-	}
 
 	AtomicReference<Nodo<E>> head;
 	AtomicReference<Nodo<E>> tail;
@@ -60,13 +79,12 @@ public class DequeConcurrente<E> implements Deque<E> {
 		checkExNull(e);
 		escrituraAquire();
 		try {
-		checkExLimiteAlcanzado();
-		}catch(IllegalStateException ex) {
+			checkExLimiteAlcanzado();
+		} catch (IllegalStateException ex) {
 			escrituraRelease();
 			throw ex;
 		}
-		
-		
+
 		Nodo<E> n = new Nodo<>(e);
 		// enlazar nuevo con nodo cabeza actual
 		n.siguiente = head.get();
@@ -89,7 +107,7 @@ public class DequeConcurrente<E> implements Deque<E> {
 		Nodo<E> nodo = head.get();
 		try {
 			checkExElementoExiste(nodo);
-		}catch (NoSuchElementException ex){
+		} catch (NoSuchElementException ex) {
 			escrituraRelease();
 			throw ex;
 		}
@@ -147,8 +165,8 @@ public class DequeConcurrente<E> implements Deque<E> {
 		checkExNull(e);
 		escrituraAquire();
 		try {
-		checkExLimiteAlcanzado();
-		}catch(IllegalStateException ex) {
+			checkExLimiteAlcanzado();
+		} catch (IllegalStateException ex) {
 			escrituraRelease();
 			throw ex;
 		}
@@ -173,8 +191,8 @@ public class DequeConcurrente<E> implements Deque<E> {
 		escrituraAquire();
 		Nodo<E> nodo = tail.get();
 		try {
-		checkExElementoExiste(nodo);
-		}catch(NoSuchElementException ex) {
+			checkExElementoExiste(nodo);
+		} catch (NoSuchElementException ex) {
 			escrituraRelease();
 			throw ex;
 		}
@@ -298,7 +316,7 @@ public class DequeConcurrente<E> implements Deque<E> {
 	 * @see DequeConcurrente#addFirst(Object)
 	 */
 	@Override
-	public void push(E e) {
+	public void push(E e) throws IllegalStateException, NullPointerException {
 		this.addFirst(e);
 	}
 
@@ -309,7 +327,7 @@ public class DequeConcurrente<E> implements Deque<E> {
 	 */
 
 	@Override
-	public E pop() {
+	public E pop() throws IllegalStateException, NullPointerException {
 		return this.removeFirst();
 	}
 
@@ -459,14 +477,14 @@ public class DequeConcurrente<E> implements Deque<E> {
 
 		Iterator<E> it = (Iterator<E>) c.iterator();
 		boolean cambiado = false;
-		boolean seguir=true;
+		boolean seguir = true;
 		try {
-			while (it.hasNext()&&seguir) {
+			while (it.hasNext() && seguir) {
 				offerLast(it.next());
 				cambiado = true;
 			}
-		}catch(Exception ex) {
-		} 
+		} catch (Exception ex) {
+		}
 
 		return cambiado;
 
@@ -553,7 +571,7 @@ public class DequeConcurrente<E> implements Deque<E> {
 	public <T> T[] toArray(T[] a) {
 		LinkedList<T> lista = new LinkedList<>();
 		if (cantidad.get() == 0)
-			
+
 			return lista.toArray(a);
 		int i = 0;
 		Nodo<E> n = head.get();
@@ -603,6 +621,22 @@ public class DequeConcurrente<E> implements Deque<E> {
 		sEscritura.release();
 	}
 
+	
+	/**
+	 * Clase nodo para construir la sucesion de valores relacionados
+	 * @param <E>
+	 */
+	private class Nodo<E> {
+		Nodo<E> anterior;
+		Nodo<E> siguiente;
+		E valor;
+
+		public Nodo(E valor) {
+			this.valor = valor;
+		}
+
+	}
+	
 	/**
 	 * Clase para construir el iterador
 	 */

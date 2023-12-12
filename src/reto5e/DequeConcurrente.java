@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Implementacion de la interfaz Deque con soporte para concurrencia y limite 
  * máximo del tamaño de la colección. La limitación de tamaño es opcional. 
- * La implementación consiste en una colección creada con nodos doblemente enlazados con 
- * dos referencias a nivel de clase hacia HEAD y TAIL de tipo AtomicReference. 
+ * La implementación consiste en una colección creada con nodos doblemente enlazados. 
+ * Hay dos referencias a hacia HEAD y TAIL de tipo AtomicReference. 
  * Se lleva un registro del  tamaño en un atributo AtomicInteger. 
  * Contiene los métodos de la interfaz  Deque y Collection.
  * Los métodos que suponen algún cambio en la  colección(inserción y borrado) 
@@ -49,20 +49,50 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DequeConcurrente<E> implements Deque<E> {
 
+	/**
+	 * Referencia a head(primer nodo)
+	 */
+	private AtomicReference<Nodo<E>> head;
+	
+	/**
+	 * Referencia a tail(ultimo nodo)
+	 */
+	private AtomicReference<Nodo<E>> tail;
+	
+	/**
+	 * Limite de longitud de la Deque. Si no se ha especificado  
+	 * limite es null.
+	 */
+	private AtomicInteger limite;
+	
+	/**
+	 * Cantidad de elementos dentro de la deque
+	 */
+	private AtomicInteger cantidad = new AtomicInteger(0);
+	
+	/**
+	 * Semaforo usado para mutex entre elementos que modifiquen 
+	 * la deque.
+	 */
+	private Semaphore sEscritura = new Semaphore(1);
 
-
-	AtomicReference<Nodo<E>> head;
-	AtomicReference<Nodo<E>> tail;
-	AtomicInteger limite;
-	AtomicInteger cantidad = new AtomicInteger(0);
-	Semaphore sEscritura = new Semaphore(1);
-
+	
+	/**
+	 * Constructor de deque sin limite de tamaño
+	 */
 	public DequeConcurrente() {
 		head = new AtomicReference<Nodo<E>>();
 		tail = new AtomicReference<Nodo<E>>();
 	}
 
-	public DequeConcurrente(int limite) {
+	
+	/**
+	 * Constructor de deque con limite de tamaño
+	 * @param limite Limite de elementos maximo permitido
+	 * 
+	 * @throws IllegalArgumentException Si el limite es menor que 1
+	 */
+	public DequeConcurrente(int limite) throws IllegalArgumentException{
 		if (limite < 1)
 			throw new IllegalArgumentException();
 		head = new AtomicReference<Nodo<E>>();
@@ -74,10 +104,17 @@ public class DequeConcurrente<E> implements Deque<E> {
 	// METODOS PRINCIPALES DE LA INTERFAZ DEQUE
 	// ********************************************************************************************************
 
+	
+	/**
+	 * Agrega un elemento al inicio(head).
+	 */
 	@Override
 	public void addFirst(E e) throws IllegalStateException, NullPointerException {
+		//comporobacion de nulo
 		checkExNull(e);
+		//mutex escritura
 		escrituraAquire();
+		//comprobación de limite de tamaño
 		try {
 			checkExLimiteAlcanzado();
 		} catch (IllegalStateException ex) {
@@ -101,18 +138,28 @@ public class DequeConcurrente<E> implements Deque<E> {
 		escrituraRelease();
 	}
 
+	/**
+	 * Elimina un elemento al inicio(head) 
+	 * y lo devuelve
+	 */
 	@Override
 	public E removeFirst() throws NoSuchElementException {
+		//escitura mutex
 		escrituraAquire();
+		//comprobar que cabecera existe
 		Nodo<E> nodo = head.get();
 		try {
 			checkExElementoExiste(nodo);
+		//en caso de no existir se libera el semaforo y se lanza
+		//excepcion
 		} catch (NoSuchElementException ex) {
 			escrituraRelease();
 			throw ex;
 		}
 		E elemento = head.get().valor;
-		// si head y tail eran lo mismo es que solo habia ese. Eliminar ambos
+		
+		// si head y tail eran lo mismo es que solo habia ese. Eliminar ambos.
+		// en otro caso eliminar solo head
 		if (nodo.equals(tail.get())) {
 			head.set(null);
 			tail.set(null);
@@ -120,11 +167,16 @@ public class DequeConcurrente<E> implements Deque<E> {
 			head.set(head.get().siguiente);
 			head.get().anterior = null;
 		}
+		//actualizar cantidad
 		cantidad.decrementAndGet();
+		//liberar escritura mutex
 		escrituraRelease();
 		return elemento;
 	}
 
+	/**
+	 * Devuelve el primer elemento(head) sin eliminarlo
+	 */
 	@Override
 	public E getFirst() throws NoSuchElementException {
 		Nodo<E> nodo = head.get();
@@ -132,6 +184,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return nodo.valor;
 	}
 
+	/**
+	 * Inserta un elemento al inicio(head)
+	 */
 	@Override
 	public boolean offerFirst(E e) throws NullPointerException {
 		try {
@@ -141,7 +196,11 @@ public class DequeConcurrente<E> implements Deque<E> {
 			return false;
 		}
 	}
-
+	
+	
+	/**
+	 * Devuelve el primer elemento(head) sin eliminarlo
+	 */
 	@Override
 	public E pollFirst() {
 		try {
@@ -150,7 +209,11 @@ public class DequeConcurrente<E> implements Deque<E> {
 			return null;
 		}
 	}
-
+	
+	
+	/**
+	 * Devuelve el primer elemento(head) sin eliminarlo
+	 */
 	@Override
 	public E peekFirst() {
 		try {
@@ -160,16 +223,25 @@ public class DequeConcurrente<E> implements Deque<E> {
 		}
 	}
 
+	
+	/**
+	 * Agrega un elemento al final(tail).
+	 */
 	@Override
 	public void addLast(E e) throws NullPointerException, IllegalStateException {
+		//comprobar si e es nulo
 		checkExNull(e);
+		
+		//escritura mutex
 		escrituraAquire();
 		try {
+			//comprobar limite de tamano
 			checkExLimiteAlcanzado();
 		} catch (IllegalStateException ex) {
 			escrituraRelease();
 			throw ex;
 		}
+		//crear nuevo nodo
 		Nodo<E> n = new Nodo<>(e);
 		// enlazar nuevo con nodo tail
 		n.anterior = tail.get();
@@ -182,13 +254,21 @@ public class DequeConcurrente<E> implements Deque<E> {
 			// en caso contrario enlazar la antigua tail con el nuevo
 			n.anterior.siguiente = n;
 		}
+		//incrementar cantidad
 		cantidad.incrementAndGet();
+		//terminar escritura mutex
 		escrituraRelease();
 	}
 
+	/**
+	 * Eliminar un elemento del final(tail).
+	 */
 	@Override
 	public E removeLast() throws NoSuchElementException {
+		//escritura mutex
 		escrituraAquire();
+		
+		//comprobar si existe
 		Nodo<E> nodo = tail.get();
 		try {
 			checkExElementoExiste(nodo);
@@ -196,6 +276,7 @@ public class DequeConcurrente<E> implements Deque<E> {
 			escrituraRelease();
 			throw ex;
 		}
+		//auxiliar para retornar valor
 		E e = nodo.valor;
 		// si head y tail son lo mismo poner ambos a null
 		if (nodo.equals(head.get())) {
@@ -211,6 +292,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return e;
 	}
 
+	/**
+	 * Devuelve el ultimo elemento(tail) sin eliminarlo
+	 */
 	@Override
 	public E getLast() throws NoSuchElementException {
 		Nodo<E> nodo = tail.get();
@@ -218,6 +302,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return nodo.valor;
 	}
 
+	/**
+	 * Agrega un elemento al final(tail).
+	 */
 	@Override
 	public boolean offerLast(E e) throws NullPointerException {
 		try {
@@ -228,6 +315,10 @@ public class DequeConcurrente<E> implements Deque<E> {
 		}
 	}
 
+	
+	/**
+	 * Agrega un elemento al final(tail).
+	 */
 	@Override
 	public E pollLast() {
 		try {
@@ -237,6 +328,10 @@ public class DequeConcurrente<E> implements Deque<E> {
 		}
 	}
 
+	
+	/**
+	 * Devuelve el ultimo elemento(tail) sin eliminarlo
+	 */
 	@Override
 	public E peekLast() {
 		try {
@@ -331,12 +426,21 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return this.removeFirst();
 	}
 
+	/**
+	 * Elimina una ocurrencia de un objeto si existe 
+	 * empezando por el principio(head)
+	 */
 	@Override
 	public boolean remove(Object o) {
 		escrituraAquire();
 		boolean borrado = false;
 		Nodo<E> n = head.get();
+		
+		//Recorrer la deque hasta llegar al final
+		//o haber borrado el elemento
 		while (n != null && !borrado) {
+		
+			//si es el elemento buscado se elimina
 			if (n.valor.equals(o)) {
 				Nodo<E> anterior = n.anterior;
 				Nodo<E> siguiente = n.siguiente;
@@ -360,8 +464,8 @@ public class DequeConcurrente<E> implements Deque<E> {
 				// registar el borrado
 				borrado = true;
 				cantidad.decrementAndGet();
-				// si no es igual pasamos al suguiente
 			} else {
+				// si no es el elemento buscado pasamos al suguiente nodo
 				n = n.siguiente;
 			}
 		}
@@ -369,12 +473,18 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return borrado;
 	}
 
+	/**
+	 * Devuelve si la deque contiene el objeto
+	 */
 	@Override
 	public boolean contains(Object o) {
+		//devolver falso si o es null
 		if (o == null)
 			return false;
+		
 		boolean contiene = false;
 		Nodo<E> n = head.get();
+		//recorrer deque hasta terminar o encontrarlo
 		while (n != null && !contiene) {
 			if (n.valor.equals(o)) {
 				contiene = true;
@@ -395,12 +505,22 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return remove(o);
 	}
 
+	/**
+	 * Elimina la primera ocurrencia de un objeto 
+	 * empezando por el final(tail)
+	 * 
+	 */
 	@Override
 	public boolean removeLastOccurrence(Object o) {
+		//escritura mutex
 		escrituraAquire();
 		boolean borrado = false;
 		Nodo<E> n = tail.get();
+		//recorrer deque en sentido inverso hasta terminarla
+		//o haber borrado el elemento
 		while (n != null && !borrado) {
+			
+			//si es el elemento buscado se elimina
 			if (n.valor.equals(o)) {
 				Nodo<E> anterior = n.anterior;
 				Nodo<E> siguiente = n.siguiente;
@@ -424,15 +544,23 @@ public class DequeConcurrente<E> implements Deque<E> {
 				// registar el borrado
 				borrado = true;
 				cantidad.decrementAndGet();
-				// si no es igual pasamos al suguiente
+				
 			} else {
+				// si no es el elemento buscado pasamos al anterior en la deque
 				n = n.anterior;
 			}
 		}
+		//termina escritura mutex
 		escrituraRelease();
 		return borrado;
 	}
 
+	/**
+	 * Devuelve un iterador sobre los elementos de la deque referenciando
+	 * los elementos previamente a una lista externa por lo que 
+	 * una vez obtenido el iterador se puede iterar sin interferencia
+	 * de las acciones de otra hebra sobre la deque
+	 */
 	@Override
 	public Iterator<E> iterator() {
 		LinkedList<E> lista = new LinkedList<>();
@@ -444,6 +572,10 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return new DequeConcurrenteIterator(lista);
 	}
 
+	/**
+	 * Igual que el metodo iterator pero en sentido descendente
+	 * see {@link #iterator()}
+	 */
 	@Override
 	public Iterator<E> descendingIterator() {
 		LinkedList<E> lista = new LinkedList<>();
@@ -455,6 +587,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return new DequeConcurrenteIterator(lista);
 	}
 
+	/**
+	 * Devuelve la cantidad de elementos contenidos actualmente en la deque
+	 */
 	@Override
 	public int size() {
 		return cantidad.get();
@@ -472,6 +607,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return cantidad.get() == 0;
 	}
 
+	/**
+	 * Agrega todos los elementos de la coleccion a la deque
+	 */
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
 
@@ -490,6 +628,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 
 	}
 
+	/**
+	 * Vacia la deque
+	 */
 	@Override
 	public void clear() {
 		escrituraAquire();
@@ -499,6 +640,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		escrituraRelease();
 	}
 
+	/**
+	 * Devuelve si la deque contiene todos los elementos de la coleccion.
+	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		Iterator<?> it = c.iterator();
@@ -509,6 +653,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return contieneTodo;
 	}
 
+	/**
+	 * Elimina de la deque todos los elementos de la coleccion
+	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		Iterator<?> it = c.iterator();
@@ -525,17 +672,18 @@ public class DequeConcurrente<E> implements Deque<E> {
 		return algunoBorrado;
 	}
 
+	/**
+	 * Elimina de la deque los elementos que no esten en la coleccion
+	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
 
-		ArrayList<Object> lista = new ArrayList<>();
-		c.iterator().forEachRemaining(t -> lista.add(t));
 
 		Iterator<E> itLocal = iterator();
 		boolean algunoBorrado = false;
 		while (itLocal.hasNext()) {
 			Object elemento = itLocal.next();
-			boolean borrar = !lista.contains(elemento);
+			boolean borrar = !c.contains(elemento);
 			while (borrar) {
 				borrar = remove(elemento);
 				if (borrar)
@@ -588,7 +736,13 @@ public class DequeConcurrente<E> implements Deque<E> {
 	// METODO PRIVADOS
 	// ********************************************************************************************************
 
-	private void checkExNull(E e) {
+	/**
+	 * Comprueba si el elemento es nulo. Si es nulo 
+	 * lanza una excepción NullPointerException
+	 * @param e elemento a comprobar
+	 * 
+	 */
+	private void checkExNull(E e) throws NullPointerException{
 		if (e == null)
 			throw new NullPointerException();
 
@@ -598,17 +752,25 @@ public class DequeConcurrente<E> implements Deque<E> {
 	 * Comprueba si se ha alcanzado el limite. Si se ha alcanzado se emite una
 	 * excepcion IllegalArgumentException
 	 */
-	private void checkExLimiteAlcanzado() {
+	private void checkExLimiteAlcanzado() throws IllegalStateException{
 		if (limite != null && cantidad.get() == limite.get())
 			throw new IllegalStateException();
 
 	}
 
-	private void checkExElementoExiste(Nodo<E> nodo) {
+	/**
+	 * Comprueba si el nodo es nulo y en caso de serlo lanza una excepcion 
+	 * @param nodo El nodo a comprobar
+	 * @throws NoSuchElementException Si el nodo es nulo
+	 */
+	private void checkExElementoExiste(Nodo<E> nodo) throws NoSuchElementException {
 		if (nodo == null)
 			throw new NoSuchElementException();
 	}
 
+	/**
+	 * Adquiere el uso del semaforo de escritura
+	 */
 	private void escrituraAquire() {
 		try {
 			sEscritura.acquire();
@@ -617,6 +779,9 @@ public class DequeConcurrente<E> implements Deque<E> {
 
 	}
 
+	/**
+	 * Libera el semaforo de escritura
+	 */
 	private void escrituraRelease() {
 		sEscritura.release();
 	}

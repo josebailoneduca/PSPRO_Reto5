@@ -2,6 +2,8 @@ package reto5b;
 
 /**
  * Parametros de configuracion del reto 5B
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Config {
 	/**

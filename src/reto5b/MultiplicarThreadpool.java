@@ -7,6 +7,8 @@ import java.util.concurrent.Executors;
  * Multiplica dos matrices usando un threadpool de tipo fixedThreadPool con
  * tantos hilos como procesadores tiene el sistema. El pool de hebras se nutre
  * de runables que se encargan cada uno de multiplicar una fila de la matriz A
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MultiplicarThreadpool {
 	/**

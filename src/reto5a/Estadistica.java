@@ -1,10 +1,10 @@
 package reto5a;
 
-import java.util.Iterator;
-
 
 /**
  * Imprime estadisticas en pantalla sobre la actividad de los filosofos y la pertenencia de los tenedores
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Estadistica {
 	

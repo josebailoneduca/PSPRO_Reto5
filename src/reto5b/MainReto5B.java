@@ -10,6 +10,8 @@ package reto5b;
  * 2) Genera las matrices para almacenar el resultado
  * 3) Lanza el calculo de cada una de las técnicas  (secuencial, hebra por fila y pool de hebras)
  * 4) Muestra el resultado de tiempo empleado por cada técnica
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MainReto5B {
 	public static void main(String[] args) {

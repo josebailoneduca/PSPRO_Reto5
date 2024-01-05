@@ -3,6 +3,8 @@ package reto5b;
 /**
  * Multiplica dos matrices generando un hilo por cada fila de la matriz A Espera
  * a que todas las hebras terminen para calcular el tiempo empleado
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MultiplicarHebras {
 	/**

@@ -5,6 +5,8 @@ import java.util.concurrent.Semaphore;
 /**
  * Hace la multiplicacion con un bucle triple anidado que va efectuando la
  * operacion de la multiplicación de las matrices
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MultiplicarSecuencial {
 	/**

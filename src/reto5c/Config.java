@@ -2,6 +2,8 @@ package reto5c;
 
 /**
  * Configuracion del programa
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Config {
 

@@ -2,6 +2,8 @@ package reto5a;
 
 /**
  * Configuracion de los parametros del programa
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Config {
 	/**

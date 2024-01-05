@@ -6,6 +6,8 @@ import java.util.Random;
 /**
  * Representa a los filosofos. Guarda referencias a cual es el tenedor derecho e izquierdo
  * En su carrera pasa por la fase de pensar, coger tenedores, comer y soltar tenedores.
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Filosofo extends Thread{
 	

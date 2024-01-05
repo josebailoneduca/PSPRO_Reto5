@@ -2,6 +2,8 @@ package reto5b;
 
 /**
  * Clase runable que implementa la multiplicacion de una fila de la matriz A por las columnas de la matriz B 
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MultiplicaFilaPorColumnas implements Runnable {
 	/**

@@ -4,6 +4,8 @@ import java.util.Random;
 
 /**
  * Genera matrices necesarias para el programa
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Generador {
 

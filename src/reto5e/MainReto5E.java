@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Se hace la prueba de dos maneras. En una ocasión sin limitar el tamaño de la DequeConcurrente
  * Y en otra ocasion limitando el tamaño de la DequeConcurrente al valor definido en LIMITE_LONGITUD_DEQUE
  * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MainReto5E {
 	

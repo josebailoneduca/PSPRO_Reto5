@@ -5,6 +5,8 @@ package reto5a;
  * Punto de entrada del programa
  * Configura la mesa, los filosofos y los tenedores
  * Inicia la carrera de los filosofos
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class MainReto5A {
 

@@ -1,11 +1,11 @@
 package reto5a;
 
-import java.util.Random;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Representa un tenedor. Contiene un semaforo binario indicando si el tenedor esta libre o no.
+ * 
+ * @author Jose Javier Bailon Ortiz
  */
 public class Tenedor {
 
